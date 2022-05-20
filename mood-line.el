@@ -213,6 +213,10 @@
           ('interrupted (propertize "⏸ Paused  " 'face 'mood-line-status-neutral))
           ('no-checker ""))))
 
+(defvar-local mood-line--modalka-text nil)
+  (defun mood-line--update-modalka-segment ()
+    (setq mood-line--modalka-text (when (bound-and-true-p modalka-mode) "NORM  ")))
+
 ;;
 ;; Segments
 ;;
@@ -303,6 +307,9 @@
     (unless (string= (mood-line--string-trim process-info) "")
       (concat (mood-line--string-trim process-info) "  "))))
 
+(defun mood-line-segment-modalka ()
+    mood-line--modalka-text)
+
 ;;
 ;; Activation function
 ;;
@@ -328,6 +335,9 @@
         (add-hook 'after-save-hook #'mood-line--update-vc-segment)
         (advice-add #'vc-refresh-state :after #'mood-line--update-vc-segment)
 
+	;; Setup modalka hooks
+	(add-hook 'modalka-mode-hook #'mood-line--update-modalka-segment)
+
         ;; Disable anzu's mode-line segment setting, saving the previous setting to be restored later (if present)
         (when (boundp 'anzu-cons-mode-line-p)
           (setq mood-line--anzu-cons-mode-line-p anzu-cons-mode-line-p))
@@ -344,6 +354,7 @@
                           (format-mode-line
                            '(" "
                              (:eval (mood-line-segment-modified))
+			     (:eval (mood-line-segment-modalka))
                              (:eval (mood-line-segment-buffer-name))
                              (:eval (mood-line-segment-anzu))
                              (:eval (mood-line-segment-multiple-cursors))
